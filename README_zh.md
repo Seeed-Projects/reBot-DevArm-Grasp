@@ -1,17 +1,17 @@
-# 🦾 reBot Arm B601 视觉夹取 Demo
+#  reBot Arm B601 视觉夹取 Demo
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Seeed-Projects/reBot-DevArm/main/media/v1.0.png" alt="reBot Arm B601">
+  <img src="https://raw.githubusercontent.com/Seeed-Projects/reBot-DevArm/main/media/v1.0.png" alt="reBot Arm B601" />
 </p>
 
 <p align="center">
     <a href="./LICENSE">
-        <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT">
+        <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" />
     </a>
-    <img src="https://img.shields.io/badge/Python-3.10+-blue.svg" alt="Python Version">
-    <img src="https://img.shields.io/badge/Platform-Ubuntu%2022.04+-orange.svg" alt="Platform">
-    <img src="https://img.shields.io/badge/Camera-RGB--D-green.svg" alt="Camera">
-    <img src="https://img.shields.io/badge/Detection-YOLO-yellow.svg" alt="YOLO">
+    <img src="https://img.shields.io/badge/Python-3.10+-blue.svg" alt="Python Version" />
+    <img src="https://img.shields.io/badge/Platform-Ubuntu%2022.04+-orange.svg" alt="Platform" />
+    <img src="https://img.shields.io/badge/Camera-RGB--D-green.svg" alt="Camera" />
+    <img src="https://img.shields.io/badge/Detection-YOLO-yellow.svg" alt="YOLO" />
 </p>
 
 <p align="center">
@@ -27,11 +27,11 @@
 
 ---
 
-## 📖 项目介绍
+##  项目介绍
 
 **reBot Arm B601 视觉夹取 Demo** 是基于 [reBot Arm B601](https://github.com/vectorBH6/reBotArm_control_py) 机械臂控制库与 RGB-D 深度相机的视觉抓取算法演示项目。系统支持 B601 的 DM 与 RS 两种机械臂配置，通过 YOLO 模型实时识别桌面物体，利用 OBB 最小外接矩形估计夹取姿态，经手眼标定将相机坐标系下的抓取点变换到机械臂基坐标系，最终驱动机械臂完成自主抓取。
 
-### ✨ 核心功能
+###  核心功能
 
 - 📷 **深度感知** — 支持 Orbbec Gemini 2 与 RealSense D435i / D405 等 RGB-D 深度相机
 - 🔍 **目标检测** — 基于 YOLO 模型识别，支持开放词汇自定义类别
@@ -41,7 +41,7 @@
 
 ---
 
-## ⚙️ 硬件配置
+## 硬件配置
 
 | 组件 | 型号 / 要求 |
 |------|------------|
@@ -63,7 +63,7 @@ sudo chmod 666 /dev/ttyUSB0        # USB2CAN（端口号按实际调整）
 
 ---
 
-## 🚀 快速上手
+## 环境安装
 
 ### Step 1. 克隆仓库
 
@@ -87,6 +87,11 @@ cd rebot_grasp
 conda env create -f environment.yml
 conda activate rebotarm
 ```
+:::tip
+如果你想使用其他环境名，可以将命令中的 `rebotarm` 替换为自定义名称。
+
+:::
+
 
 ### Step 3. 安装机械臂控制库
 
@@ -106,18 +111,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 include = ["reBotArm_control_py*"]
-```
-
-B601 的 DM 与 RS 两种机械臂配置通过 SDK 仓库中的配置文件切换。请在 `sdk/reBotArm_control_py/config/rebotarm.yaml` 中修改 `hardware_yaml`，选择对应的硬件配置，例如：
-
-```yaml
-hardware_yaml: rebotarm_dm.yaml
-```
-
-或：
-
-```yaml
-hardware_yaml: rebotarm_rs.yaml
 ```
 
 视觉抓取程序会读取该 SDK 配置，并自动选择对应的机械臂控制模式与夹爪参数。
@@ -157,11 +150,28 @@ git clone https://gitee.com/orbbecdeveloper/pyorbbecsdk.git
 
 注意，如果上述安装过程中均发生错误导致安装失败，请参考下方Orbbec官方文档进行安装操作。
 
+:::tip
+首次使用建议安装 udev 规则：
+
+```bash
+sudo bash scripts/install_udev_rules.sh
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
 **验证安装**
 
 ```bash
 python -c "import pyorbbecsdk; print('pyorbbecsdk OK')"
 ```
+:::
+
+**OrbbecViewer（可选，用于验证相机）**
+
+下载预编译包后运行 `OrbbecViewer`，可在运行 Demo 前确认相机连接和深度流正常。
+
+- GitHub：https://github.com/orbbec/OrbbecSDK_v2/releases
+- Gitee：https://gitee.com/orbbecdeveloper/OrbbecSDK_v2/releases
 
 **RealSense D435i / D405**
 
@@ -174,20 +184,6 @@ python -c "import pyrealsense2; print('pyrealsense2 OK')"
 
 如果系统需要完整的 RealSense 工具链或 udev 规则，请参考 RealSense SDK 官方文档安装 `librealsense2`。
 
-**Orbbec udev 规则（首次使用必须）**
-
-```bash
-cd sdk/pyorbbecsdk
-sudo bash scripts/install_udev_rules.sh
-sudo udevadm control --reload-rules && sudo udevadm trigger
-```
-
-**OrbbecViewer（可选，用于验证相机）**
-
-下载预编译包后运行 `OrbbecViewer`，可在运行 Demo 前确认相机连接和深度流正常。
-
-- GitHub：https://github.com/orbbec/OrbbecSDK_v2/releases
-- Gitee：https://gitee.com/orbbecdeveloper/OrbbecSDK_v2/releases
 
 **SDK 资料汇总**
 
@@ -204,7 +200,7 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 
 ### Step 5. 配置 GraspNet（可选）
 
-为了实现对物体夹取姿态更准确的估计，本项目对[graspnet-baseline]{https://github.com/graspnet/graspnet-baseline}进行了适配，从而提升机械臂夹取的性能。
+为了实现对物体夹取姿态更准确的估计，本项目对[graspnet-baseline](https://github.com/graspnet/graspnet-baseline)进行了适配，从而提升机械臂夹取的性能。
 
 GraspNet 的 `pointnet2` / `knn` 扩展需要 CUDA 编译器。开始前先确认当前环境可以找到 `nvcc`，并检查 `nvcc` 的 CUDA 版本是否和 PyTorch 编译时使用的 CUDA 版本一致：
 
@@ -251,13 +247,21 @@ pip install .
 cd ../../..
 ```
 
-***注：如果直接参考graspnet-baseline官方仓库文档使用 `python setup.py install` 可能报 CUDA / PyTorch 相关错误，建议使用 `pip install . --no-build-isolation`，让扩展在当前 conda 环境中复用已安装的 PyTorch 与 CUDA 配置进行编译。***
+:::tip
+注：如果直接参考graspnet-baseline官方仓库文档使用 `python setup.py install` 可能报 CUDA / PyTorch 相关错误，建议使用 `pip install . --no-build-isolation`，让扩展在当前 conda 环境中复用已安装的 PyTorch 与 CUDA 配置进行编译。
+:::
 
-***如果编译时报 `fatal error: cusparse.h: No such file or directory`，先运行 `find $CONDA_PREFIX -name cusparse.h`，并把包含 `cusparse.h` 的目录加入 `CPATH` / `CPLUS_INCLUDE_PATH`。如果 CUDA 头文件来自 conda `cuda-toolkit`，路径通常是 `$CONDA_PREFIX/targets/x86_64-linux/include`，而不是上面示例里的 pip `nvidia/cu13/include` 路径。***
+:::tip
+如果编译时报 `fatal error: cusparse.h: No such file or directory`，先运行 `find $CONDA_PREFIX -name cusparse.h`，并把包含 `cusparse.h` 的目录加入 `CPATH` / `CPLUS_INCLUDE_PATH`。如果 CUDA 头文件来自 conda `cuda-toolkit`，路径通常是 `$CONDA_PREFIX/targets/x86_64-linux/include`，而不是上面示例里的 pip `nvidia/cu13/include` 路径。
+:::
 
-***此外，GraspNet API 的依赖中可能仍使用 `sklearn` 包名。上面的 `sed` 命令会将 `sklearn` 替换为 `scikit-learn`，避免安装时出现包名提示。除非同步调整 GraspNet API 的依赖栈，否则建议保留其 `numpy==1.23.4` 约束，因为 `transforms3d==0.3.1` 仍使用 `np.float` 等 NumPy 别名。***
+:::tip
+此外，GraspNet API 的依赖中可能仍使用 `sklearn` 包名。上面的 `sed` 命令会将 `sklearn` 替换为 `scikit-learn`，避免安装时出现包名提示。除非同步调整 GraspNet API 的依赖栈，否则建议保留其 `numpy==1.23.4` 约束，因为 `transforms3d==0.3.1` 仍使用 `np.float` 等 NumPy 别名。
+:::
 
-参考 graspnet-baseline 官方仓库下载 GraspNet 官方预训练权重后，将 `checkpoint-rs.tar` 放到：
+**配置预训练模型**
+
+在graspnet-baseline 官方仓库下载 GraspNet 官方预训练权重[Google](https://drive.google.com/file/d/1hd0G8LN6tRpi4742XOTEisbTXNZ-1jmk/view)、[Baidu](https://pan.baidu.com/s/1Eme60l39tTZrilF0I86R5A)，将 下载好的`checkpoint-rs.tar` 放到：
 
 ```bash
 sdk/graspnet-baseline/checkpoints/checkpoint-rs.tar
@@ -274,7 +278,7 @@ graspnet:
 
 ---
 
-## 📁 目录结构
+## 目录结构
 
 ```
 rebot_grasp/
@@ -299,6 +303,7 @@ rebot_grasp/
 │   └── transforms.py             # 坐标变换工具
 ├── scripts/
 │   ├── main.py                   # 主抓取程序
+│   ├── set.py                    # 抓取与放置程序
 │   ├── ordinary_grasp_pipeline.py
 │   ├── object_detection.py
 │   └── collect_handeye_eih.py
@@ -308,129 +313,8 @@ rebot_grasp/
 └── environment.yml               # 推荐的 conda 环境文件
 ```
 
----
 
-## 🛠️ 配置说明
-
-### 配置文件
-
-编辑 `config/default.yaml`，确认以下关键参数：
-
-```yaml
-camera:
-  type: orbbec_gemini2
-  serial: null
-  color_width: 1280
-  color_height: 720
-  fps: 30
-
-calibration:
-  aruco:
-    marker_length_m: 0.1
-    dict_id: 0
-    target_marker_id: 0
-  hand_eye_method: TSAI
-  hand_eye_compensation_m:
-    x: 0.00
-    y: 0.0
-    z: -0.01
-
-detection:
-  conf_threshold: 0.5
-  iou_threshold: 0.45
-
-robot:
-  repo_root: null
-  gripper:
-    dm:
-      angle_open: 5.0
-      counterclockwise: true
-      tau_max: 1.5
-      close_torque: 1.0
-      default_force: 0.30
-    rs:
-      angle_open: 5.0
-      counterclockwise: false
-      tau_max: 1.5
-      close_torque: 1.5
-      default_force: 0.30
-  ready_pose:
-    x: 0.3
-    y: 0.0
-    z: 0.3
-    roll: 0.0
-    pitch: 0.7
-    duration: 3.0
-
-yolo:
-  model_name: "yoloe-26l-seg.pt"
-  device: "cpu"          # GPU 可改为 "cuda:0"
-  use_world: true
-  custom_classes:
-    - "yellow banana"
-    - "water bottle"
-    - "light blue coffee cup"
-    - "cup"
-    - "green object"
-    - "tool"
-
-grasp_pipeline:
-  infer_every_live: 3
-  grasp:
-    depth_quantile: 0.5
-    pregrasp_offset_m: 0.080
-    insertion_depth_m: 0.015
-    min_base_z_m: 0.00
-
-graspnet:
-  checkpoint: "checkpoint-rs.tar"
-  num_point: 20000
-  collision_thresh: 0.01
-  min_depth: 0.05
-  max_depth: 1.0
-  top_k: 50
-  target_class: null
-  target_margin_px: 12
-  target_expand_ratio: 1.35
-```
-
-### YAML参数说明
-
-- `camera.type`：相机类型，可选 `realsense_d435i`、`realsense_d405`、`orbbec_gemini2`。
-- `camera.serial`：指定设备序列号；`null` 表示使用第一台可用设备。
-- `calibration.aruco.marker_length_m`：手眼标定用 ArUco 边长，单位米。
-- `calibration.hand_eye_compensation_m`：手眼标定后的 XYZ 手动平移补偿，作用在机器人基坐标系下，单位为米。三项全为 `0.0` 时，补偿矩阵为单位矩阵。
-- `detection.conf_threshold`：YOLO 检测置信度阈值。
-- `detection.iou_threshold`：YOLO NMS IoU 阈值。
-- `robot.repo_root`：`reBotArm_control_py` 仓库根目录；为 `null` 时默认使用 `sdk/reBotArm_control_py`。
-- `robot.gripper.dm` / `robot.gripper.rs`：按 SDK 当前硬件配置自动选择的两组夹爪参数。`angle_open`、`close_torque`、`default_force` 均填写正数数值；`counterclockwise` 表示闭合时采用的电机转动方向，代码会据此推导张开角度和闭合力矩的符号。`tau_max` 为力矩上限。其余夹爪行为参数在 `drivers/robot/grasp_driver.py` 中定义。
-- `robot.ready_pose`：启动后先到达的预备位，抓取结束后也会回到这里。
-- 切换 DM/RS 机械臂：在 SDK 的 `sdk/reBotArm_control_py/config/rebotarm.yaml` 中修改 `hardware_yaml`，选择 `rebotarm_dm.yaml` 或 `rebotarm_rs.yaml`。
-- `grasp_pipeline.infer_every_live`：实时预览时每 N 帧跑一次检测，减轻 CPU/GPU 压力。
-- `grasp_pipeline.grasp.depth_quantile`：短轴抓取管线使用的深度分位数，值越大通常抓取点越深。
-- `grasp_pipeline.grasp.pregrasp_offset_m`：预抓取位相对最终抓取位，沿末端进给方向回退的距离，单位米。
-- `grasp_pipeline.grasp.insertion_depth_m`：GraspNet 执行时沿进给方向额外插入的距离。
-- `grasp_pipeline.grasp.min_base_z_m`：机械臂基坐标系下允许的最低抓取高度。
-- `graspnet`：`scripts/graspnet_camera_demo.py` 和 `scripts/grasp.py` 使用的 GraspNet 运行参数。
-
-### 模型选择库
-
-YOLO 模型会从 `rebot_grasp/models/` 目录加载；如果模型文件不存在，Ultralytics 通常会尝试自动下载。
-
-常用模型：
-
-| 模型 | 说明 |
-| --- | --- |
-| `yoloe-26l-seg.pt` | 开放词汇 + 分割，当前默认 |
-| `yoloe-26s-seg.pt` | 更轻量，速度更快 |
-| `yolov8n-seg.pt` | 封闭类别分割，小模型 |
-| `yolov8s-seg.pt` | 封闭类别分割，精度更高 |
-
-当模型名包含 `world` / `yoloe`，并且 `yolo.use_world=true` 时，程序会调用 `model.set_classes(custom_classes)`，将 `yolo.custom_classes` 注入为开放词汇类别。普通 `yolov8*-seg.pt` 模型会忽略这组开放词汇类别。
-
----
-
-## 🎬 运行与调试
+## 运行与调试
 
 ### 0. 确认机械臂版本与 SDK 配置
 
@@ -476,6 +360,10 @@ python scripts/collect_handeye_eih.py --manual
 
 手动模式下，机械臂会进入重力补偿状态。将末端推到合适视角后按 `Enter` 采集，按 `c` 或 `q` 结束并计算。
 
+:::tip
+如果您在校准之后发现机械臂的抓取精度无法满足需求，可以设置`config/default.yaml`参数 `calibration.hand_eye_compensation_m`中的 `X（前后）、Y（左右）、Z（高低）` 参数给予位置补偿。
+:::
+
 ### 2. `scripts/main.py` — 主抓取程序
 
 完整的视觉抓取流水线：
@@ -487,11 +375,24 @@ python scripts/collect_handeye_eih.py --manual
 5. 按 `G` 冻结帧，经手眼变换计算机械臂目标位姿
 6. 机械臂移动到预抓取点 → 下降 → 夹爪闭合 → 提升 → 回预备位
 
-### 3. `scripts/ordinary_grasp_pipeline.py` — 简化抓取测试
+### 3. `scripts/set.py` — 抓取与放置程序
+
+功能效果：将香蕉抓取并放置到盒子里面
+
+完成流程：
+1. 相机与机械臂初始化，移动到预备点位
+2. 实时相机预览 + YOLO 目标检测与实例分割
+3. 按 `G` 冻结帧，经手眼变换计算机械臂目标位姿
+4. 机械臂移动抓取香蕉并抬高
+5. 机械臂将香蕉放置在盒子内，并回归初始姿态
+6. 按 `Q` 退出系统，机械臂回归零点
+
+
+### 4. `scripts/ordinary_grasp_pipeline.py` — 简化抓取测试
 
 不依赖机械臂，仅验证 OBB 抓取姿态估计和可视化效果，适合调试感知模块。
 
-### 4. `scripts/graspnet_camera_demo.py` — GraspNet 相机估计 Demo
+### 5. `scripts/graspnet_camera_demo.py` — GraspNet 相机估计 Demo
 
 不连接机械臂，仅使用 RGB-D 相机运行 GraspNet 6D 夹取姿态估计。脚本会保留实时相机预览，并使用 YOLO 检测框选择目标区域，再从 GraspNet 全场景候选中筛选目标 bbox 内的可行夹取。按 `G` 或 `Space` 对当前帧推理，按 `R` 恢复实时预览，按 `Q` 或 `Esc` 退出；推理后可通过 Open3D 查看点云与夹取候选。
 
@@ -499,7 +400,7 @@ python scripts/collect_handeye_eih.py --manual
 python scripts/graspnet_camera_demo.py
 ```
 
-### 5. `scripts/grasp.py` — GraspNet 机械臂抓取程序
+### 6. `scripts/grasp.py` — GraspNet 机械臂抓取程序
 
 基于 `graspnet_camera_demo.py` 的估计结果接入机械臂执行流程：YOLO 选择目标，GraspNet 输出 6D 夹取姿态，经手眼标定转换到机械臂基坐标系，再检查 IK 可达性并执行预夹取、夹取、退回动作。调试时建议先使用 `--dry-run` 只打印目标位姿和候选筛选结果。
 
@@ -508,9 +409,81 @@ python scripts/grasp.py --dry-run
 python scripts/grasp.py --target-class "light blue coffee cup"
 ```
 
-### 6. `scripts/object_detection.py` — 基础检测 Demo
+### 7. `scripts/object_detection.py` — 基础检测 Demo
 
 纯 YOLO 检测演示，实时显示检测框和置信度，无抓取逻辑。
+
+---
+
+## default.yaml 参数说明
+
+#### 1. 相机与标定配置 (`camera` & `calibration`)
+
+| 参数项 | 类型 / 可选值 | 含义与详细说明 |
+| :--- | :--- | :--- |
+| `camera.type` | `realsense_d435i`<br/>`realsense_d405`<br/>`orbbec_gemini2` | **相机类型**：指定当前系统连接的相机硬件。 |
+| `camera.serial` | `string` / `null` | **设备序列号**：指定具体的设备 SN 号。填写 `null` 表示默认使用系统检测到的第一台可用设备。 |
+| `calibration.aruco.marker_length_m` | `float` | **ArUco 边长**：手眼标定所使用的 ArUco 标定码实际物理边长，单位为**米 (m)**。 |
+| `calibration.hand_eye_compensation_m` | `array` | **手眼标定平移补偿**：手眼标定完成后，在**机器人基坐标系**下执行的 XYZ 手动平移补偿（格式为 `[X, Y, Z]`），单位为**米 (m)**。若三项全为 `0.0`，则补偿矩阵为单位矩阵。 |
+
+---
+
+#### 2. 目标检测配置 (`detection`)
+
+| 参数项 | 类型 | 含义与详细说明 |
+| :--- | :--- | :--- |
+| `detection.conf_threshold` | `float` | **YOLO 检测置信度阈值**：得分低于该值的检测框将被过滤。 |
+| `detection.iou_threshold` | `float` | **YOLO NMS IoU 阈值**：非极大值抑制（NMS）中用于过滤重叠框的交并比（IoU）阈值。 |
+
+---
+
+#### 3. 机器人与夹爪配置 (`robot`)
+
+| 参数项 | 类型 / 可选值 | 含义与详细说明 |
+| :--- | :--- | :--- |
+| `robot.repo_root` | `string` / `null` | **仓库根目录**：`reBotArm_control_py` 仓库的路径。为 `null` 时默认使用内部相对路径 `sdk/reBotArm_control_py`。 |
+| `robot.ready_pose` | `array` | **预备位**：系统机械臂启动后优先到达的预备位置。每次抓取任务结束后，机械臂也会自动返回至该位置。 |
+| `robot.gripper.dm`<br/>`robot.gripper.rs` | 结构体对象 | **夹爪硬件参数**：系统会根据 SDK 当前的实际硬件配置，自动选择并应用对应的这两组参数之一。 |
+
+#### 夹爪内部核心参数说明
+
+对于 `robot.gripper.dm` 或 `robot.gripper.rs` 内部的子参数，定义规则如下：
+
+* **`angle_open`**、**`close_torque`**、**`default_force`**：分别对应张开角度、闭合力矩和默认控制力，均需填写**正数数值**。
+* **`counterclockwise`**：布尔值。指示闭合时采用的电机转动方向（是否为逆时针）。代码会据此逻辑自动推导出张开角度和闭合力矩的符号。
+* **`tau_max`**：力矩上限。
+
+:::tip
+注：其余更高级的夹爪控制行为参数，可在 `drivers/robot/grasp_driver.py` 文件中进行查阅与定义。
+:::
+
+---
+
+#### 4. 抓取管线与 GraspNet 配置 (`grasp_pipeline` & `graspnet`)
+
+| 参数项 | 类型 | 含义与详细说明 |
+| :--- | :--- | :--- |
+| `grasp_pipeline.infer_every_live` | `int` | **推理帧间隔**：在实时视频预览时，每 N 帧运行一次目标检测，用以有效减轻 CPU/GPU 的实时计算压力。 |
+| `grasp_pipeline.grasp.depth_quantile` | `float` | **深度分位数**：短轴抓取管线所使用的深度计算分位数。该数值越大，计算出的抓取点通常会越深。 |
+| `grasp_pipeline.grasp.pregrasp_offset_m` | `float` | **预抓取位偏移量**：相对于最终的目标抓取位置，沿末端进给方向往回退的距离，单位为**米 (m)**。 |
+| `grasp_pipeline.grasp.insertion_depth_m` | `float` | **插入深度**：GraspNet 执行抓取时，沿进给方向额外向前推入或插入的深度，单位为**米 (m)**。 |
+| `grasp_pipeline.grasp.min_base_z_m` | `float` | **最低抓取高度限制**：在**机械臂基坐标系**下允许的最低抓取 Z 轴高度，单位为**米 (m)**（作为底层防碰撞的安全边界）。 |
+| `graspnet` | 结构体配置 | **GraspNet 运行参数**：该配置项下的所有子参数供 `scripts/graspnet_camera_demo.py` 和 `scripts/grasp.py` 脚本运行时加载使用。 |
+
+### 模型选择库
+
+YOLO 模型会从 `rebot_grasp/models/` 目录加载；如果模型文件不存在，Ultralytics 通常会尝试自动下载。
+
+常用模型：
+
+| 模型 | 说明 |
+| --- | --- |
+| `yoloe-26l-seg.pt` | 开放词汇 + 分割，当前默认 |
+| `yoloe-26s-seg.pt` | 更轻量，速度更快 |
+| `yolov8n-seg.pt` | 封闭类别分割，小模型 |
+| `yolov8s-seg.pt` | 封闭类别分割，精度更高 |
+
+当模型名包含 `world` / `yoloe`，并且 `yolo.use_world=true` 时，程序会调用 `model.set_classes(custom_classes)`，将 `yolo.custom_classes` 注入为开放词汇类别。普通 `yolov8*-seg.pt` 模型会忽略这组开放词汇类别。
 
 ---
 
