@@ -1,5 +1,5 @@
 camera:
-  type: orbbec_gemini2
+  type: realsense_d405
   serial: null
   color_width: 1280
   color_height: 720
@@ -14,7 +14,7 @@ calibration:
   hand_eye_compensation_m:
     x: 0.00
     y: 0.0
-    z: -0.02
+    z: 0.00
 
 detection:
   conf_threshold: 0.5
@@ -45,7 +45,7 @@ robot:
 
 yolo:
   model_name: "yoloe-26l-seg.pt"
-  device: "cpu"
+  device: "cuda"
   use_world: true
   custom_classes:
     - "yellow banana"
@@ -54,6 +54,7 @@ yolo:
     - "cup"
     - "green object"
     - "tool"
+    - "box"
 
 grasp_pipeline:
   infer_every_live: 3
