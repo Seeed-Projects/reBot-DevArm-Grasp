@@ -1,5 +1,5 @@
 camera:
-  type: realsense_d405
+  type: orbbec_gemini2
   serial: null
   color_width: 1280
   color_height: 720
@@ -45,7 +45,7 @@ robot:
 
 yolo:
   model_name: "yoloe-26l-seg.pt"
-  device: "cuda"
+  device: "cpu"
   use_world: true
   custom_classes:
     - "yellow banana"
