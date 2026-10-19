@@ -209,13 +209,70 @@ nvcc --version
 python -c "import torch; print(torch.__version__, torch.version.cuda)"
 ```
 
-如果没有 `nvcc`，或 `nvcc` 显示的 CUDA 版本与 `torch.version.cuda` 不一致，请安装与当前 PyTorch CUDA 版本匹配的 CUDA 编译器。例如 PyTorch 显示 `13.0` 时：
+第一次配置本环境时，`environment.yml` 中的 `torchaudio` 通常已经把 PyTorch 一起装好了；如果没有装好（或装成了 CPU 版），请按下面步骤显式安装并验证 CUDA 版 PyTorch。GraspNet 的 `pointnet2` / `knn` 扩展依赖 PyTorch 和与之版本一致的 CUDA 编译器，全部完成后再开始编译。
+
+**第 1 步：确认显卡**
 
 ```bash
-conda install -c nvidia cuda-nvcc=13.0
+nvidia-smi
 ```
 
-也可以反过来安装与当前 `nvcc` 版本匹配的 PyTorch。两者必须一致，否则编译 `pointnet2` / `knn` 时会出现 `The detected CUDA version (...) mismatches the version that was used to compile PyTorch (...)`。
+能列出 NVIDIA 显卡再继续；没有 NVIDIA 显卡只能使用 CPU 版 PyTorch，无法编译和运行 GraspNet 的 CUDA 算子。
+
+**第 2 步：检查 / 安装 PyTorch**
+
+先检查当前环境中是否已有 PyTorch：
+
+```bash
+python -c "import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available())"
+```
+
+- 已安装且 `torch.cuda.is_available()` 输出 `True`：跳过安装，直接到第 3 步。
+- 报 `ModuleNotFoundError`（未安装），或 `torch.version.cuda` 为 `None`（装成了 CPU 版）：按下面的命令安装 CUDA 版。以 CUDA 13.0 为例：
+
+```bash
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu130
+```
+
+`--index-url` 中的 CUDA 版本按显卡选择：
+
+| 显卡 | 推荐的 PyTorch CUDA 构建 |
+| --- | --- |
+| RTX 50 系（Blackwell，如 RTX 5070 / 5090） | `cu128` 或更新（如 `cu130`） |
+| RTX 40 / 30 系（Ada / Ampere） | `cu121` 或 `cu118` |
+| 无 NVIDIA 显卡 | `cpu`（仅 CPU，不能跑 GraspNet） |
+
+**第 3 步：安装与 PyTorch 匹配的 CUDA 编译器**
+
+`pointnet2` / `knn` 是本地 CUDA 扩展，编译时 `nvcc --version` 显示的 CUDA 版本必须与 `torch.version.cuda` 一致，否则会报 `The detected CUDA version (...) mismatches the version that was used to compile PyTorch (...)`。先查看两个版本：
+
+```bash
+nvcc --version
+python -c "import torch; print(torch.version.cuda)"
+```
+
+以 `torch.version.cuda` 显示 `13.0` 为例，在 conda 环境中安装匹配的编译器：
+
+```bash
+conda install -c nvidia cuda-nvcc=13.0 cuda-cudart-dev=13.0
+
+which nvcc       # 应指向 $CONDA_PREFIX/bin/nvcc，而不是 /usr/bin/nvcc
+nvcc --version   # 应与 torch.version.cuda 一致
+```
+
+`cuda-nvcc` 提供编译器，`cuda-cudart-dev` 提供 `targets/x86_64-linux/include` 下的 CUDA 头文件，两者都需要。conda 环境激活后 `$CONDA_PREFIX/bin` 位于 `PATH` 最前，会自动遮蔽系统自带的旧版 `nvcc`（例如 Ubuntu 仓库安装的 CUDA 11.5），无需卸载系统 CUDA。
+
+> **Warning**
+> 不建议用降级 PyTorch 的方式去迁就系统旧 `nvcc`：旧 CUDA 不一定支持你的显卡算力（CUDA 11.5 最高只支持 sm_86；RTX 40 系需要 CUDA 11.8+，RTX 50 系需要 CUDA 12.8+），且旧版 PyTorch 与本项目其他依赖（如新版 ultralytics）可能不兼容。
+
+**第 4 步：验证**
+
+```bash
+python -c "import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available())"
+nvcc --version
+```
+
+两者 CUDA 版本一致、且 `torch.cuda.is_available()` 输出 `True`，即完成 PyTorch 配置，可以继续编译 CUDA 算子。
 
 ```bash
 cd sdk

@@ -1,5 +1,5 @@
 camera:
-  type: orbbec_gemini2
+  type: "orbbec_gemini2"
   serial: null
   color_width: 1280
   color_height: 720
@@ -14,7 +14,7 @@ calibration:
   hand_eye_compensation_m:
     x: 0.00
     y: 0.0
-    z: -0.02
+    z: -0.01
 
 detection:
   conf_threshold: 0.5
@@ -54,6 +54,7 @@ yolo:
     - "cup"
     - "green object"
     - "tool"
+    - "box"
 
 grasp_pipeline:
   infer_every_live: 3
@@ -61,7 +62,7 @@ grasp_pipeline:
     depth_quantile: 0.5
     pregrasp_offset_m: 0.080
     insertion_depth_m: 0.015
-    min_base_z_m: 0.00
+    min_base_z_m: -0.01
 
 graspnet:
   checkpoint: "checkpoint-rs.tar"

@@ -232,13 +232,70 @@ nvcc --version
 python -c "import torch; print(torch.__version__, torch.version.cuda)"
 ```
 
-If `nvcc` is missing, or if the CUDA version reported by `nvcc` does not match `torch.version.cuda`, install a CUDA compiler that matches your current PyTorch CUDA version. For example, when PyTorch shows `13.0`:
+When configuring this environment for the first time, the `torchaudio` entry in `environment.yml` usually installs PyTorch along with it. If it is missing (or only the CPU build was installed), follow the steps below to explicitly install and verify a CUDA-enabled PyTorch. The GraspNet `pointnet2` / `knn` extensions depend on PyTorch and a CUDA compiler with a matching version — finish all steps before building.
+
+**Step 1: Confirm your GPU**
 
 ```bash
-conda install -c nvidia cuda-nvcc=13.0
+nvidia-smi
 ```
 
-You can also install a PyTorch build that matches your current `nvcc` version instead. The two versions must match, otherwise building `pointnet2` / `knn` will fail with `The detected CUDA version (...) mismatches the version that was used to compile PyTorch (...)`.
+Continue only if an NVIDIA GPU is listed. Without an NVIDIA GPU you can only use the CPU build of PyTorch, and the GraspNet CUDA operators cannot be built or run.
+
+**Step 2: Check / install PyTorch**
+
+First check whether PyTorch already exists in the current environment:
+
+```bash
+python -c "import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available())"
+```
+
+- If it is installed and `torch.cuda.is_available()` prints `True`, skip the installation and go to Step 3.
+- If it raises `ModuleNotFoundError` (not installed), or `torch.version.cuda` is `None` (CPU build installed), install the CUDA build as shown below. Take CUDA 13.0 as an example:
+
+```bash
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu130
+```
+
+Pick the CUDA version in `--index-url` based on your GPU:
+
+| GPU | Recommended PyTorch CUDA build |
+| --- | --- |
+| RTX 50 series (Blackwell, e.g. RTX 5070 / 5090) | `cu128` or newer (e.g. `cu130`) |
+| RTX 40 / 30 series (Ada / Ampere) | `cu121` or `cu118` |
+| No NVIDIA GPU | `cpu` (CPU only, GraspNet will not run) |
+
+**Step 3: Install the CUDA compiler matching your PyTorch**
+
+`pointnet2` / `knn` are local CUDA extensions: the CUDA version reported by `nvcc --version` must match `torch.version.cuda` when building, otherwise the build fails with `The detected CUDA version (...) mismatches the version that was used to compile PyTorch (...)`. Check both versions first:
+
+```bash
+nvcc --version
+python -c "import torch; print(torch.version.cuda)"
+```
+
+Take `torch.version.cuda` showing `13.0` as an example, and install the matching compiler inside the conda environment:
+
+```bash
+conda install -c nvidia cuda-nvcc=13.0 cuda-cudart-dev=13.0
+
+which nvcc       # should point to $CONDA_PREFIX/bin/nvcc, not /usr/bin/nvcc
+nvcc --version   # should match torch.version.cuda
+```
+
+`cuda-nvcc` provides the compiler and `cuda-cudart-dev` provides the CUDA headers under `targets/x86_64-linux/include`; both are required. Once the conda environment is activated, `$CONDA_PREFIX/bin` precedes the system paths, so the conda `nvcc` automatically shadows the old system one (for example CUDA 11.5 from the Ubuntu repositories) — there is no need to uninstall the system CUDA.
+
+> **Warning**
+> Do not downgrade PyTorch to match an old system `nvcc`: old CUDA releases may not support your GPU architecture (CUDA 11.5 supports at most sm_86; RTX 40 series requires CUDA 11.8+ and RTX 50 series requires CUDA 12.8+), and old PyTorch builds may be incompatible with other project dependencies such as recent ultralytics releases.
+
+**Step 4: Verify**
+
+```bash
+python -c "import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available())"
+nvcc --version
+```
+
+When both CUDA versions match and `torch.cuda.is_available()` prints `True`, the PyTorch setup is complete and you can continue building the CUDA operators.
 
 ```bash
 cd sdk
