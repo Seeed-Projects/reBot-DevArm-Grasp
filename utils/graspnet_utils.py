@@ -164,6 +164,26 @@ def build_net(checkpoint_path: str | Path, num_view: int = DEFAULT_NUM_VIEW) -> 
     return net
 
 
+def _expanded_bbox_pixel_bounds(
+    bbox_xyxy: tuple[int, int, int, int],
+    expand_ratio: float,
+    width: int,
+    height: int,
+) -> tuple[int, int, int, int]:
+    """Pixel bounds of a bbox expanded about its center, clipped to the image."""
+    x1, y1, x2, y2 = [float(v) for v in bbox_xyxy]
+    expand_ratio = max(1.0, float(expand_ratio))
+    cx = 0.5 * (x1 + x2)
+    cy = 0.5 * (y1 + y2)
+    half_w = 0.5 * max(1.0, x2 - x1) * expand_ratio
+    half_h = 0.5 * max(1.0, y2 - y1) * expand_ratio
+    x1 = int(np.clip(int(round(cx - half_w)), 0, max(0, width - 1)))
+    y1 = int(np.clip(int(round(cy - half_h)), 0, max(0, height - 1)))
+    x2 = int(np.clip(int(round(cx + half_w)), 0, max(0, width - 1)))
+    y2 = int(np.clip(int(round(cy + half_h)), 0, max(0, height - 1)))
+    return x1, y1, x2, y2
+
+
 def build_end_points(
     color_bgr: np.ndarray,
     depth_mm: np.ndarray,
@@ -171,6 +191,8 @@ def build_end_points(
     num_point: int,
     min_depth_m: float,
     max_depth_m: float,
+    bbox_xyxy: Optional[tuple[int, int, int, int]] = None,
+    expand_ratio: float = 1.0,
 ) -> tuple[dict, o3d.geometry.PointCloud, np.ndarray]:
     if color_bgr.shape[:2] != depth_mm.shape[:2]:
         depth_mm = cv2.resize(depth_mm, (color_bgr.shape[1], color_bgr.shape[0]), interpolation=cv2.INTER_NEAREST)
@@ -182,12 +204,23 @@ def build_end_points(
     if int(mask.sum()) == 0:
         raise RuntimeError("No valid depth pixels in the configured depth range.")
 
+    # Concentrate network input points on the target bbox when available;
+    # collision detection / visualization still use the full masked scene cloud.
+    sample_mask = mask
+    if bbox_xyxy is not None:
+        x1, y1, x2, y2 = _expanded_bbox_pixel_bounds(bbox_xyxy, expand_ratio, depth.shape[1], depth.shape[0])
+        bbox_mask = np.zeros_like(mask)
+        bbox_mask[y1 : y2 + 1, x1 : x2 + 1] = True
+        cropped = mask & bbox_mask
+        if int(cropped.sum()) >= 16:
+            sample_mask = cropped
+
     color_rgb = cv2.cvtColor(color_bgr, cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
     h, w = depth.shape
     camera = CameraInfo(w, h, float(K[0, 0]), float(K[1, 1]), float(K[0, 2]), float(K[1, 2]), 1000.0)
     cloud = create_point_cloud_from_depth_image(depth, camera, organized=True)
-    cloud_masked = cloud[mask]
-    color_masked = color_rgb[mask]
+    cloud_masked = cloud[sample_mask]
+    color_masked = color_rgb[sample_mask]
 
     if len(cloud_masked) >= num_point:
         idxs = np.random.choice(len(cloud_masked), num_point, replace=False)
@@ -206,9 +239,9 @@ def build_end_points(
     }
 
     o3d_cloud = o3d.geometry.PointCloud()
-    o3d_cloud.points = o3d.utility.Vector3dVector(cloud_masked.astype(np.float32))
-    o3d_cloud.colors = o3d.utility.Vector3dVector(color_masked.astype(np.float32))
-    return end_points, o3d_cloud, cloud_masked
+    o3d_cloud.points = o3d.utility.Vector3dVector(cloud[mask].astype(np.float32))
+    o3d_cloud.colors = o3d.utility.Vector3dVector(color_rgb[mask].astype(np.float32))
+    return end_points, o3d_cloud, cloud[mask]
 
 
 def infer_grasps(
@@ -457,7 +490,17 @@ def infer_frame(
         target_label = f"{selected_target.class_name} {selected_target.conf:.2f}"
 
     tic = time.time()
-    end_points, o3d_cloud, raw_cloud = build_end_points(color_bgr, depth_mm, K, num_point, min_depth, max_depth)
+    crop_bbox = selected_target.bbox_xyxy if selected_target is not None else None
+    end_points, o3d_cloud, raw_cloud = build_end_points(
+        color_bgr,
+        depth_mm,
+        K,
+        num_point,
+        min_depth,
+        max_depth,
+        bbox_xyxy=crop_bbox,
+        expand_ratio=target_expand_ratio,
+    )
     grasps, counts = infer_grasps(net, end_points, raw_cloud, collision_thresh, voxel_size)
     pre_bbox_grasps = copy_grasp_group(grasps)
     if selected_target is not None:

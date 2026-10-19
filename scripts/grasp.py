@@ -248,12 +248,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--height", type=int, default=None)
     parser.add_argument("--fps", type=int, default=None)
     parser.add_argument("--warmup", type=int, default=20)
-    parser.add_argument("--num-point", type=int, default=20000)
+    parser.add_argument("--num-point", type=int, default=None)
     parser.add_argument("--num-view", type=int, default=300)
-    parser.add_argument("--collision-thresh", type=float, default=0.01)
+    parser.add_argument("--collision-thresh", type=float, default=None)
     parser.add_argument("--voxel-size", type=float, default=0.01)
-    parser.add_argument("--min-depth", type=float, default=0.05, help="meters")
-    parser.add_argument("--max-depth", type=float, default=2.0, help="meters")
+    parser.add_argument("--min-depth", type=float, default=None, help="meters")
+    parser.add_argument("--max-depth", type=float, default=None, help="meters")
     parser.add_argument("--target-class", default=None)
     parser.add_argument("--extra-yolo-class", action="append", default=[], help="add open-vocabulary YOLO class")
     parser.add_argument("--target-margin-px", type=int, default=None)
@@ -292,6 +292,12 @@ def main() -> int:
     insertion_depth_m = float(grasp_cfg.get("insertion_depth_m", 0.0))
     min_base_z_m = float(args.min_base_z if args.min_base_z is not None else grasp_cfg.get("min_base_z_m", 0.03))
     graspnet_cfg = cfg.get("graspnet", {})
+    min_depth_m = float(args.min_depth if args.min_depth is not None else graspnet_cfg.get("min_depth", 0.05))
+    max_depth_m = float(args.max_depth if args.max_depth is not None else graspnet_cfg.get("max_depth", 2.0))
+    num_point = int(args.num_point if args.num_point is not None else graspnet_cfg.get("num_point", 20000))
+    collision_thresh = float(
+        args.collision_thresh if args.collision_thresh is not None else graspnet_cfg.get("collision_thresh", 0.01)
+    )
     target_expand_ratio = float(
         args.target_expand_ratio
         if args.target_expand_ratio is not None
@@ -434,10 +440,10 @@ def main() -> int:
                         snap_color,
                         snap_depth,
                         K,
-                        num_point=args.num_point,
-                        min_depth=args.min_depth,
-                        max_depth=args.max_depth,
-                        collision_thresh=args.collision_thresh,
+                        num_point=num_point,
+                        min_depth=min_depth_m,
+                        max_depth=max_depth_m,
+                        collision_thresh=collision_thresh,
                         voxel_size=args.voxel_size,
                         yolo_model=yolo_model,
                         yolo_opts=yolo_opts,
