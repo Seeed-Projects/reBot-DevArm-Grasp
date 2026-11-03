@@ -1,0 +1,5 @@
+# Shared version set for both CPU and CUDA wheels; choose --index-url in README.
+# Update all three together when selecting a different supported PyTorch release.
+torch==2.9.1
+torchvision==0.24.1
+torchaudio==2.9.1

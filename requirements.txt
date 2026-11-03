@@ -1,0 +1,14 @@
+# Install AFTER requirements-pytorch.txt with the CPU/CUDA index of your choice.
+# Use -c requirements-pytorch.txt to preserve the selected version set.
+numpy<2.0
+# OpenCV 4.7 includes the ArUco APIs used here; do not also install a contrib/headless wheel.
+opencv-python==4.7.0.72
+ultralytics==8.4.36
+pyrealsense2>=2.54
+meshcat>=0.3.2
+motorbridge>=0.1.7
+funasr==1.1.3
+modelscope
+soundfile
+# Required by YOLOE open-vocabulary class configuration; do not install PyPI's clip package.
+git+https://github.com/ultralytics/CLIP.git@7ffa84b3bfa40c42ecc1c77147a855e69cb2dd40
